@@ -95,13 +95,17 @@ package io.axel.sprite {
 		 *
 		 * @return The sprite instance.
 		 */
-		public function load(graphic:*, frameWidth:uint = 0, frameHeight:uint = 0):AxSprite {
+		public function load(graphic:*, frameWidth:uint = 0, frameHeight:uint = 0, partial:uint = 0):AxSprite {
 			loadTexture(graphic, frameWidth, frameHeight);
 			width = animations.frameWidth;
 			height = animations.frameHeight;
 			pivot.x = width / 2;
 			pivot.y = height / 2;
-			buildVertexBuffer(width, height, width / texture.width, height / texture.height);
+			if (partial > 0) {
+				buildVertexBuffer(width, height, width / texture.width, partial / texture.height);
+			} else {
+				buildVertexBuffer(width, height, width / texture.width, height / texture.height);
+			}
 			return this;
 		}
 		

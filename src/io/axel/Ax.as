@@ -479,7 +479,7 @@ package io.axel {
 			Ax.width = requestedWidth == 0 ? stage2D.stageWidth : requestedWidth;
 			Ax.height = requestedHeight == 0 ? stage2D.stageHeight : requestedHeight;
 			
-			context.configureBackBuffer(Ax.width, Ax.height, 16, false);
+			context.configureBackBuffer(Ax.width, Ax.height, 0, false);
 			context.enableErrorChecking = true;
 			
 			AxCache.reset();

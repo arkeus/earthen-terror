@@ -1,12 +1,8 @@
 package io.arkeus.mine.game.board {
-	import flash.display.BitmapData;
-	import flash.geom.Rectangle;
-	
 	import io.arkeus.mine.util.Registry;
 	import io.axel.Ax;
 	import io.axel.base.AxGroup;
 	import io.axel.input.AxKey;
-	import io.axel.sprite.AxSprite;
 
 	public class Board extends AxGroup {
 		public static const WIDTH:uint = 6;
@@ -18,28 +14,23 @@ package io.arkeus.mine.game.board {
 		public var cursor:Cursor;
 		public var blocks:AxGroup;
 		public var copy:Array;
-		public var debugBitmap:BitmapData;
-		public var debugSprite:AxSprite;
+		public var rowsSinceEnemy:uint = 5;
+		public var casts:AxGroup;
 		
-		public function Board(x:uint, y:uint, blah:Array) {
-			super(x, Board.BOTTOM - HEIGHT * Block.SIZE);
+		public function Board(blah:Array) {
+			super(21, Board.BOTTOM - HEIGHT * Block.SIZE);
+			noScroll();
+			
 			Registry.board = this;
 			this.height = HEIGHT;
 			
 			populate4(blah);
-			
-			debugBitmap = new BitmapData(WIDTH * Block.SIZE, HEIGHT * Block.SIZE * 4, true, 0x00ffffff);
-			add(debugSprite = new AxSprite);
-			debugSprite.load(debugBitmap);
-			
+			add(casts = new AxGroup);
 			add(cursor = new Cursor(0, 0));
-			
-			velocity.y = -2;
 		}
 		
 		override public function update():void {
 			map = buildMap();
-			//buildDebugSprite();
 			populateAbove();
 			handleFalls();
 			handleInput();
@@ -48,7 +39,7 @@ package io.arkeus.mine.game.board {
 			if (Ax.keys.held(AxKey.SHIFT)) {
 				velocity.y = -60;
 			} else {
-				velocity.y = -4;
+				velocity.y = -1;
 			}
 			
 			super.update();
@@ -91,7 +82,7 @@ package io.arkeus.mine.game.board {
 		private function handleClears():void {
 			for (var i:uint = 0; i < blocks.members.length; i++) {
 				var block:Block = blocks.members[i];
-				if (!block.matchable) {
+				if (!block.matchable || block.cleared || block.type > 9) {
 					continue;
 				}
 				
@@ -100,24 +91,47 @@ package io.arkeus.mine.game.board {
 				var down:Block = map.get(block.tx, block.ty + 1);
 				var up:Block = map.get(block.tx, block.ty - 1);
 				
-				if ((left != null && block.type == left.type && left.matchable) && (right != null && block.type == right.type && right.matchable)) {
-					block.clear();
-					left.clear();
-					right.clear();
+				if ((left != null && block.type == left.type && left.matchable && !left.cleared) && (right != null && block.type == right.type && right.matchable && !right.cleared)) {
+					clear(block, left, right);
 				}
 				
-				if ((up != null && block.type == up.type && up.matchable) && (down != null && block.type == down.type && down.matchable)) {
-					block.clear();
-					up.clear();
-					down.clear();
+				if ((up != null && block.type == up.type && up.matchable && !up.cleared) && (down != null && block.type == down.type && down.matchable && !down.cleared)) {
+					clear(block, up, down);
 				}
 			}
 		}
 		
+		private function clear(...blocks:Array):void {
+			var primary:Block = blocks[1];
+			var enemy:Block = findNearestEnemy(primary);
+			for (var index:uint in blocks) {
+				var block:Block = blocks[index];
+				if (enemy != null && block.type > 1 && !block.marked) {
+					casts.add(new Cast(block.x, block.y, block.type, enemy));
+				}
+				block.clear();
+			}
+		}
+		
+		private function findNearestEnemy(source:Block):Block {
+			var distanceSquared:Number = Number.MAX_VALUE;
+			var closest:Block = null;
+			for (var i:uint = 0; i < blocks.members.length; i++) {
+				var block:Block = blocks.members[i];
+				if (block.enemy && !block.inactive) {
+					var dx:int = block.x - source.x;
+					var dy:int = block.y - source.y;
+					var newDistance:Number = dx * dx + dy * dy;
+					if (newDistance < distanceSquared) {
+						distanceSquared = newDistance;
+						closest = block;
+					}
+				}
+			}
+			return closest;
+		}
+		
 		private function handleFalls():void {
-//			if (!Ax.keys.pressed(AxKey.X)) {
-//				return;
-//			}
 			for (var i:uint = 0; i < blocks.members.length; i++) {
 				var block:Block = blocks.members[i];
 				if (block.velocity.y != 0 || block.falling || !block.matchable) {
@@ -125,23 +139,10 @@ package io.arkeus.mine.game.board {
 				}
 				if (block.ty < height - 1 && map.get(block.tx, block.ty + 1) == null) {
 					var propagation:Block = block;
-					var first:Boolean = true;
-					while (propagation != null) {
-//						propagation.velocity.y = Block.SPEED;
+					while (propagation != null && propagation.matchable && !propagation.marked) {
 						propagation.fall();
-						if (!first) {
-							//propagation.scale.x *= 0.8;
-						}
-						first = false;
 						propagation = propagation.above;
 					}
-//					for (var ty:int = block.ty; ty > -1; ty--) {
-//						var propagation:Block = map.get(block.tx, ty);
-//						if (propagation != null) {
-//							//propagation.angle = 45;
-//							propagation.velocity.y = Block.SPEED;
-//						}
-//					}
 				}
 			}
 		}
@@ -155,24 +156,11 @@ package io.arkeus.mine.game.board {
 				var below:Block = map.get(block.tx, block.ty + 1);
 				if (block.ty >= height - 1 || (below != null && below.velocity.y == 0)) {
 					var propagation:Block = block;
-					while (propagation != null) {
+					while (propagation != null && !propagation.marked) {
 						propagation.land(below);
-						//propagation.y = propagation.ty * Block.SIZE;
-						//propagation.scale.x *= 0.8;
 						below = propagation;
 						propagation = propagation.above;
 					}
-//					
-//					for (var ty:int = block.ty; ty > -1; ty--) {
-//						var propagation:Block = map.get(block.tx, ty);
-//						if (propagation != null) {
-//							//propagation.angle = 45;
-//							propagation.velocity.y = 0;
-//							propagation.y = propagation.ty * Block.SIZE;
-//						} else {
-//							break;
-//						}
-//					}
 				}
 			}
 		}
@@ -182,22 +170,8 @@ package io.arkeus.mine.game.board {
 			for (var i:uint = 0; i < blocks.members.length; i++) {
 				var block:Block = blocks.members[i];
 				map.set(block.tx, block.ty, block);
-//				if (block.velocity.y > 0) {
-//					map.set(block.tx, block.ty + 1, block);
-//				}
 			}
 			return map;
-		}
-		
-		private function buildDebugSprite():void {
-			debugBitmap.fillRect(new Rectangle(0, 0, debugBitmap.width, debugBitmap.height * 4), 0x00ffffff);
-			for (var key:String in map.map) {
-				var value:Block = map.map[key];
-				if (value != null) {
-					debugBitmap.fillRect(new Rectangle(value.x + 4, value.y + 4, value.width - 8, value.height - 8), 0xff000000);
-				}
-			}
-			debugSprite.load(debugBitmap);
 		}
 		
 		private function populateAbove():void {
@@ -205,15 +179,6 @@ package io.arkeus.mine.game.board {
 				var block:Block = blocks.members[i];
 				if (block.matchable) {
 					block.above = map.get(block.tx, block.ty - 1);
-				}
-			}
-		}
-		
-		private function populate():void {
-			add(blocks = new AxGroup);
-			for (var x:uint = 0; x < WIDTH; x++) {
-				for (var y:uint = 0; y < height; y++) {
-					blocks.add(new Block(x, y));
 				}
 			}
 		}
@@ -237,69 +202,56 @@ package io.arkeus.mine.game.board {
 					blocks.add(new Block(x, y, copy2.pop()));
 				}
 			}
+			
+			map = buildMap();
+			for (var i:uint = 0; i < blocks.members.length; i++) {
+				var block:Block = blocks.members[i];
+				var left:Block = map.get(block.tx - 1, block.ty);
+				var right:Block = map.get(block.tx + 1, block.ty);
+				var down:Block = map.get(block.tx, block.ty + 1);
+				var up:Block = map.get(block.tx, block.ty - 1);
+				
+				if (((left != null && block.type == left.type) && (right != null && block.type == right.type)) || ((up != null && block.type == up.type) && (down != null && block.type == down.type))) {
+					var types:Array = [0, 1, 2, 3, 4, 5];
+					if (left != null && types.indexOf(left.type) != -1) {
+						types.splice(types.indexOf(left.type), 1);
+					}
+					if (right != null && types.indexOf(right.type) != -1) {
+						types.splice(types.indexOf(right.type), 1);
+					}
+					if (up != null && types.indexOf(up.type) != -1) {
+						types.splice(types.indexOf(up.type), 1);
+					}
+					if (down != null && types.indexOf(down.type) != -1) {
+						types.splice(types.indexOf(down.type), 1);
+					}
+					block.setType(types[0]);
+				}
+			}
 		}
 		
 		private function handleRows():void {
-			trace(y, height, y + height * Block.SIZE);
 			if (y + height * Block.SIZE < BOTTOM) {
 				addRow();
 			}
 		}
 		
 		private function addRow():void {
+			var block:Block;
 			for (var x:uint = 0; x < WIDTH; x++) {
-				blocks.add(new Block(x, height));
+				if (rowsSinceEnemy > 6 && Math.random() < 0.16) {
+					rowsSinceEnemy = 0;
+					blocks.add(block = new Block(x, height, BlockType.SLIME));
+				} else {
+					blocks.add(block = new Block(x, height));
+					block.inactive = true;
+				}
 			}
+			rowsSinceEnemy++;
 			height++;
 		}
 		
-		private function populate2(blah:Array):void {
-			add(blocks = new AxGroup);
-			blocks.add(new Block(0, 11, BlockType.FIRE));
-			blocks.add(new Block(0, 10, BlockType.AIR));
-			blocks.add(new Block(0, 9, BlockType.EARTH));
-			blocks.add(new Block(0, 8, BlockType.AIR));
-			blocks.add(new Block(0, 7, BlockType.EARTH));
-			blocks.add(new Block(0, 6, BlockType.FIRE));
-			blocks.add(new Block(0, 5, BlockType.EARTH));
-			blocks.add(new Block(0, 4, BlockType.AIR));
-			blocks.add(new Block(0, 3, BlockType.EARTH));
-			blocks.add(new Block(0, 2, BlockType.AIR));
-			blocks.add(new Block(0, 1, BlockType.FIRE));
-			blocks.add(new Block(0, 0, BlockType.AIR));
-			
-			blocks.add(new Block(1, 11, BlockType.AIR));
-			blocks.add(new Block(1, 10, BlockType.AIR));
-			blocks.add(new Block(1, 9, BlockType.AIR));
-			blocks.add(new Block(1, 8, BlockType.STONE));
-			blocks.add(new Block(1, 7, BlockType.FIRE));
-			blocks.add(new Block(1, 6, BlockType.EARTH));
-			blocks.add(new Block(1, 5, BlockType.FIRE));
-			blocks.add(new Block(1, 4, BlockType.EARTH));
-			blocks.add(new Block(1, 3, BlockType.STONE));
-			blocks.add(new Block(1, 2, BlockType.FIRE));
-			blocks.add(new Block(1, 1, BlockType.EARTH));
-			blocks.add(new Block(1, 0, BlockType.AIR));
-			
-			blocks.add(new Block(2, 11, BlockType.AIR));
-			blocks.add(new Block(2, 10, BlockType.AIR));
-			blocks.add(new Block(2, 9, BlockType.FIRE));
-			blocks.add(new Block(2, 8, BlockType.AIR));
-			blocks.add(new Block(2, 7, BlockType.STONE));
-			blocks.add(new Block(2, 6, BlockType.FIRE));
-			blocks.add(new Block(2, 5, BlockType.FIRE));
-			blocks.add(new Block(2, 4, BlockType.STONE));
-			blocks.add(new Block(2, 3, BlockType.EARTH));
-			blocks.add(new Block(2, 2, BlockType.FIRE));
-			blocks.add(new Block(2, 1, BlockType.STONE));
-			blocks.add(new Block(2, 0, BlockType.AIR));
-			
-			blocks.add(new Block(3, 11, BlockType.AIR));
-			blocks.add(new Block(3, 10, BlockType.AIR));
-			blocks.add(new Block(3, 9, BlockType.AIR));
-		}
-		
-		private static const SWAP_TIME:Number = 0.15;
+		private static const SWAP_TIME:Number = 0.1;
 		private function swap(left:Block, right:Block):void {
 			left.velocity.x = Block.SIZE / SWAP_TIME;
 			right.velocity.x = -Block.SIZE / SWAP_TIME;
@@ -329,19 +281,16 @@ package io.arkeus.mine.game.board {
 				left.y = ry;
 				right.x = lx;
 				right.y = ly;
-//				if (!left.placeholder) {
-//					map.set(left.tx, left.ty, left);
-//				} else {
-//					map.set(left.tx, left.ty, null);
-//				}
-//				if (!right.placeholder) {
-//					map.set(right.tx, right.ty, right);
-//				} else {
-//					map.set(right.tx, right.ty, null);
-//				}
 				left.velocity.x = 0;
 				right.velocity.x = 0;
 				left.swapping = right.swapping = false;
+				
+				if (left.alpha < 0.1) {
+					left.explode();
+				}
+				if (right.alpha < 0.1) {
+					right.explode();
+				}
 			});
 		}
 	}
