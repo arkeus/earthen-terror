@@ -1,6 +1,7 @@
 package io.arkeus.mine.game.board {
 	import io.arkeus.mine.assets.Resource;
 	import io.arkeus.mine.game.GameState;
+	import io.arkeus.mine.util.Difficulty;
 	import io.arkeus.mine.util.Registry;
 	import io.axel.Ax;
 	import io.axel.AxU;
@@ -20,6 +21,7 @@ package io.arkeus.mine.game.board {
 		public var above:Block;
 		public var swapping:Boolean = false;
 		public var inactive:Boolean = false;
+		public var locked:Boolean = false;
 
 		public var ptx:uint;
 		public var pty:uint;
@@ -49,6 +51,18 @@ package io.arkeus.mine.game.board {
 				bar.noScroll();
 			}
 			
+			switch (Registry.game.difficulty) {
+				case Difficulty.EASY:
+					hpm = hp = 100 + 25 * Registry.game.level;
+					break;
+				case Difficulty.NORMAL:
+					hpm = hp = 200 + 50 * Registry.game.level;
+					break;
+				case Difficulty.HARD:
+					hpm = hp = 300 + 75 * Registry.game.level;
+					break;
+			}
+			
 			animations.frameHeight = 10;
 		}
 		
@@ -56,10 +70,15 @@ package io.arkeus.mine.game.board {
 			this.type = type;
 			if (type < 10) {
 				show(type);
+//				if (Math.random() < 0.05) {
+//					lock();
+//				} else {
+//					unlock();
+//				}
 			} else {
 				switch (type) {
 					case BlockType.SLIME:
-						animations.add("enemy", [6, 7, 6, 8], 6);
+						animations.add("enemy", [12, 13, 12, 14], 8);
 					break;
 				}
 				animations.play("enemy");
@@ -67,6 +86,16 @@ package io.arkeus.mine.game.board {
 			if (type == BlockType.PLACEHOLDER) {
 				visible = false;
 			}
+		}
+		
+		public function lock():void {
+			show(type + 6);
+			locked = true;
+		}
+		
+		public function unlock():void {
+			show(type);
+			locked = false;
 		}
 
 		private function zoomIn():void {
@@ -97,10 +126,12 @@ package io.arkeus.mine.game.board {
 			} else {
 				if (globalY > Board.BOTTOM - 20) {
 					inactive = true;
-					alpha = 0.3;
+//					alpha = 0.3;
+					color.hex = 0xff333333;
 				} else {
 					inactive = false;
-					alpha = 1;
+//					alpha = 1;
+					color.hex = 0xffffffff;
 				}
 			}
 
@@ -163,9 +194,22 @@ package io.arkeus.mine.game.board {
 		public function get matchable():Boolean {
 			return velocity.y == 0 && (!cleared || alpha < 0.1) && !swapping && !inactive;
 		}
+		
+		public function get swapable():Boolean {
+			return velocity.y == 0 && (!cleared || alpha < 0.1) && !swapping && !inactive && !locked;
+		}
+		
+		public function get fallable():Boolean {
+			return velocity.y == 0 && (!cleared || alpha < 0.1) && !swapping && !inactive;
+		}
 
 		public function clear():void {
-			marked = true;
+			if (locked) {
+				unlock();
+			} else {
+				marked = true;
+				velocity.a = 180;
+			}
 		}
 
 		public function fall():void {

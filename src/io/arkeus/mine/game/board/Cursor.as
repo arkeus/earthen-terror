@@ -12,6 +12,10 @@ package io.arkeus.mine.game.board {
 		}
 		
 		public function move(dx:int, dy:int):void {
+			if (!visible) {
+				return;
+			}
+			
 			if (tx + dx >= 0 && tx + dx < Board.WIDTH - 1) {
 				tx += dx;
 			}
