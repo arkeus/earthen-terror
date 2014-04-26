@@ -1,4 +1,6 @@
 package io.arkeus.mine.game.board {
+	import io.arkeus.mine.assets.Resource;
+	import io.arkeus.mine.util.Registry;
 	import io.axel.sprite.AxSprite;
 
 	public class Cursor extends AxSprite {
@@ -6,21 +8,19 @@ package io.arkeus.mine.game.board {
 		public var ty:uint;
 		
 		public function Cursor(tx:uint, ty:uint) {
-			super(tx * Block.SIZE, ty * Block.SIZE);
-			
-			create(Block.SIZE * 2, Block.SIZE, 0x99000000);
+			super(tx * Block.SIZE - 3, ty * Block.SIZE - 3, Resource.CURSOR);
 		}
 		
 		public function move(dx:int, dy:int):void {
 			if (tx + dx >= 0 && tx + dx < Board.WIDTH - 1) {
 				tx += dx;
 			}
-			if (ty + dy >= 0 && ty + dy < Board.HEIGHT) {
+			if (ty + dy >= 0 && ty + dy < Registry.board.height - 1) {
 				ty += dy;
 			}
 			
-			x = tx * Block.SIZE;
-			y = ty * Block.SIZE;
+			x = tx * Block.SIZE - 3;
+			y = ty * Block.SIZE - 3;
 		}
 	}
 }

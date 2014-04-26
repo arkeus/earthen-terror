@@ -1,6 +1,6 @@
 package io.arkeus.mine.game.board {
 	public class BlockMap {
-		private var map:Object;
+		public var map:Object;
 		
 		public function BlockMap() {
 			this.map = {};

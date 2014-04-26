@@ -261,6 +261,7 @@ package io.axel.base {
 		 * @inheritDoc
 		 */
 		override public function dispose():void {
+			return;
 			clear(true);
 			members = null;
 			tempMembers = null;
