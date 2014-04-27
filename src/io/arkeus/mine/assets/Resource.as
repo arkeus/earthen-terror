@@ -18,6 +18,7 @@ package io.arkeus.mine.assets {
 		[Embed(source = "/ui/border.png")] public static const BORDER:Class;
 		[Embed(source = "/ui/bars.png")] public static const BARS:Class;
 		[Embed(source = "/ui/lose.png")] public static const LOSE:Class;
+		[Embed(source = "/ui/pause.png")] public static const PAUSE:Class;
 		[Embed(source = "/ui/win.png")] public static const WIN:Class;
 		
 		[Embed(source = "/map/map.png")] public static const MAP:Class;
@@ -25,6 +26,8 @@ package io.arkeus.mine.assets {
 		[Embed(source = "/map/level.png")] public static const MAP_LEVEL:Class;
 		
 		[Embed(source = "/title/title.png")] public static const TITLE:Class;
+		[Embed(source = "/title/story.png")] public static const STORY:Class;
+		[Embed(source = "/title/quickstart.png")] public static const QUICKSTART:Class;
 
 		[Embed(source = "/particles/particles_red.png")] public static const PARTICLES_RED:Class;
 		[Embed(source = "/particles/particles_yellow.png")] public static const PARTICLES_YELLOW:Class;

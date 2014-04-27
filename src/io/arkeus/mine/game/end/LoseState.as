@@ -36,7 +36,7 @@ package io.arkeus.mine.game.end {
 					done = true;
 					Ax.camera.fadeOut(0.5, 0xff000000, function():void {
 						Ax.states.pop();
-						Ax.states.change(new MapState);
+						Ax.states.change(new MapState(Registry.game.digsite.index));
 						Ax.camera.fadeIn(0.5);
 					});
 				}

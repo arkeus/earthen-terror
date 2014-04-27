@@ -2,6 +2,7 @@ package io.arkeus.mine.game {
 	import io.arkeus.mine.assets.Resource;
 	import io.arkeus.mine.game.board.Board;
 	import io.arkeus.mine.game.end.LoseState;
+	import io.arkeus.mine.game.end.PauseState;
 	import io.arkeus.mine.game.end.WinState;
 	import io.arkeus.mine.map.Level;
 	import io.arkeus.mine.util.Registry;
@@ -31,7 +32,6 @@ package io.arkeus.mine.game {
 			this.time = 0;
 			this.mode = mode;
 			this.digsite = digsite;
-			this.digsite.goal = 1;
 		}
 
 		override public function create():void {
@@ -50,7 +50,7 @@ package io.arkeus.mine.game {
 		override public function update():void {
 			if (!ended) {
 				if (Ax.keys.pressed(AxKey.ESCAPE)) {
-					Ax.states.change(new GameState);
+					Ax.states.push(new PauseState);
 				}
 				if (mode == GOAL && enemies >= digsite.goal) {
 					win();

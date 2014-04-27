@@ -10,5 +10,7 @@ package io.arkeus.mine.util {
 		
 		public static var difficulty:int = -1;
 		public static var progress:Array = [0, 0, 0, 0, 0];
+		public static var story:Boolean = false;
+		public static var quickstart:Boolean = false;
 	}
 }

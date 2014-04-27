@@ -19,7 +19,7 @@ package io.arkeus.mine.game.board {
 		public function random():Block {
 			var keys:Array = [];
 			for (var key:String in map) {
-				if (!map[key].lockable) {
+				if (map[key].lockable) {
 					keys.push(key);
 				}
 			}

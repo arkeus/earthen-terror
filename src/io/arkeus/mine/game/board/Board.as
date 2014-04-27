@@ -52,9 +52,9 @@ package io.arkeus.mine.game.board {
 					velocity.y = -60;
 				} else {
 					switch (Registry.game.difficulty) {
-						case Difficulty.EASY: velocity.y = -1 - Registry.game.level / 9; break;
-						case Difficulty.NORMAL: velocity.y = -1 - Registry.game.level / 6; break;
-						case Difficulty.HARD: velocity.y = -1 - Registry.game.level / 3; break;
+						case Difficulty.EASY: velocity.y = -1 - Registry.game.level / 12; break;
+						case Difficulty.NORMAL: velocity.y = -1 - Registry.game.level / 9; break;
+						case Difficulty.HARD: velocity.y = -1 - Registry.game.level / 6; break;
 					}				
 				}
 			} else {
@@ -254,13 +254,13 @@ package io.arkeus.mine.game.board {
 			}
 		}
 		
-		private static const ENEMIES:Array = [BlockType.SLIME, BlockType.SQUID, BlockType.RABBIT];
 		private function addRow():void {
 			var block:Block;
 			for (var x:uint = 0; x < WIDTH; x++) {
-				if (rowsSinceEnemy > 2 && Math.random() < 0.10) {
+				if (rowsSinceEnemy > 4 && Math.random() < 0.10) {
 					rowsSinceEnemy = 0;
-					blocks.add(block = new Block(x, height, ENEMIES[AxU.rand(0, ENEMIES.length - 1)]));
+					var enemies:Array = Registry.game.digsite.enemies;
+					blocks.add(block = new Block(x, height, enemies[AxU.rand(0, enemies.length - 1)]));
 				} else {
 					blocks.add(block = new Block(x, height));
 					block.inactive = true;
@@ -381,7 +381,7 @@ package io.arkeus.mine.game.board {
 		public function lose():void {
 			for (var i:uint = 0; i < blocks.members.length; i++) {
 				var block:Block = blocks.members[i];
-				block.effects.fadeOut(1);
+				block.effects.fadeOut(1, 0.2);
 			}
 			cursor.visible = false;
 		}

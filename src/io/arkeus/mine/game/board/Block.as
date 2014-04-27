@@ -54,15 +54,15 @@ package io.arkeus.mine.game.board {
 
 			switch (Registry.game.difficulty) {
 				case Difficulty.EASY:  {
-					hpm = hp = 100 + 15 * Registry.game.level;
+					hpm = hp = 150 + 10 * Registry.game.level;
 					break;
 				}
 				case Difficulty.NORMAL:  {
-					hpm = hp = 150 + 30 * Registry.game.level;
+					hpm = hp = 200 + 20 * Registry.game.level;
 					break;
 				}
 				case Difficulty.HARD:  {
-					hpm = hp = 200 + 50 * Registry.game.level;
+					hpm = hp = 250 + 40 * Registry.game.level;
 					break;
 				}
 			}
@@ -97,6 +97,14 @@ package io.arkeus.mine.game.board {
 						animations.add("enemy", [18, 19, 18, 20], 8);
 						break;
 					}
+					case BlockType.LION:  {
+						animations.add("enemy", [21, 22, 21, 23], 8);
+						break;
+					}
+					case BlockType.MOUSE:  {
+						animations.add("enemy", [24, 25, 24, 26], 8);
+						break;
+					}
 				}
 				animations.play("enemy");
 			}
@@ -106,11 +114,17 @@ package io.arkeus.mine.game.board {
 		}
 
 		public function lock():void {
+			if (enemy) {
+				return;
+			}
 			show(type + 6);
 			locked = true;
 		}
 
 		public function unlock():void {
+			if (enemy) {
+				return;
+			}
 			show(type);
 			locked = false;
 			AxParticleSystem.emit("unlock", x + parentOffset.x, y + parentOffset.y);
@@ -163,7 +177,7 @@ package io.arkeus.mine.game.board {
 					explode();
 				}
 	
-				if (globalY < Board.TOP) {
+				if (globalY < Board.TOP && loseable) {
 					Registry.game.lose();
 				}
 			}
@@ -222,6 +236,10 @@ package io.arkeus.mine.game.board {
 		public function get matchable():Boolean {
 			return velocity.y == 0 && (!cleared || alpha < 0.1) && !swapping && !inactive;
 		}
+		
+		public function get loseable():Boolean {
+			return velocity.y == 0 && !cleared && !swapping && !inactive;
+		}
 
 		public function get swapable():Boolean {
 			return velocity.y == 0 && (!cleared || alpha < 0.1) && !swapping && !inactive && !locked;
@@ -273,15 +291,23 @@ package io.arkeus.mine.game.board {
 		private function get attackTimer():Number {
 			switch (type) {
 				case BlockType.SLIME:  {
-					return Math.max(2, 6 - Registry.game.level * 0.2);
+					return Math.max(2, 6 - Registry.game.level * 0.1);
 					break;
 				}
 				case BlockType.SQUID:  {
-					return Math.max(8, 12 - Registry.game.level * 0.2);
+					return Math.max(8, 12 - Registry.game.level * 0.1);
 					break;
 				}
 				case BlockType.RABBIT:  {
-					return Math.max(8, 12 - Registry.game.level * 0.2);
+					return Math.max(8, 12 - Registry.game.level * 0.1);
+					break;
+				}
+				case BlockType.LION:  {
+					return Math.max(4, 8 - Registry.game.level * 0.1);
+					break;
+				}
+				case BlockType.MOUSE:  {
+					return Math.max(4, 9 - Registry.game.level * 0.1);
 					break;
 				}
 			}
@@ -319,6 +345,21 @@ package io.arkeus.mine.game.board {
 							Registry.board.spells.add(new Blade(this.x, this.y, block));
 						}
 					}
+					break;
+				}
+				case BlockType.LION:  {
+					for (x = tx - 1; x <= tx + 1; x++) {
+						block = Registry.board.map.get(x, ty);
+						if (block != null && block.lockable) {
+							Registry.board.spells.add(new Blade(this.x, this.y, block));
+						}
+					}
+					
+					break;
+				}
+				case BlockType.MOUSE:  {
+					Registry.board.spells.add(new Blade(this.x, this.y, Registry.board.map.random()));
+					Registry.board.spells.add(new Blade(this.x, this.y, Registry.board.map.random()));
 					break;
 				}
 			}

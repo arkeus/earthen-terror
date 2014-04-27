@@ -9,15 +9,20 @@ package io.arkeus.mine.map {
 	import io.axel.text.AxText;
 
 	public class MapState extends AxState {
+		private var initial:uint;
 		private var map:AxSprite;
 		private var levels:LevelSet;
 		private var text:AxText;
 		private var done:Boolean = false;
+		
+		public function MapState(initial:uint = 0) {
+			this.initial = initial;
+		}
 
 		override public function create():void {
 			noScroll();
 			add(map = new AxSprite(0, 0, Resource.MAP));
-			add(levels = new LevelSet);
+			add(levels = new LevelSet(initial));
 			add(text = new AxText(0, 8, null, "Choose A Digsite", Ax.viewWidth, "center"));
 		}
 

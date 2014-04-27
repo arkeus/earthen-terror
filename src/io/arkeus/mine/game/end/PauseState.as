@@ -7,21 +7,15 @@ package io.arkeus.mine.game.end {
 	import io.axel.sprite.AxSprite;
 	import io.axel.state.AxState;
 
-	public class WinState extends AxState {
-		private var win:AxSprite;
-		private var faded:Boolean = false;
+	public class PauseState extends AxState {
+		private var lose:AxSprite;
+		private var faded:Boolean = true;
 		private var done:Boolean = false;
 
 		override public function create():void {
 			noScroll();
 
-			add(win = new AxSprite(0, 0, Resource.WIN));
-			win.alpha = 0;
-			win.effects.fadeIn(0.5, 1, function():void {
-				faded = true;
-			});
-			
-			Registry.progress[Registry.game.digsite.index - 1] = 1;
+			add(lose = new AxSprite(0, 0, Resource.PAUSE));
 		}
 
 		override public function update():void {
@@ -33,6 +27,9 @@ package io.arkeus.mine.game.end {
 						Ax.states.change(new MapState(Registry.game.digsite.index));
 						Ax.camera.fadeIn(0.5);
 					});
+				} else if (Ax.keys.pressed(AxKey.ESCAPE)) {
+					done = true;
+					Ax.states.pop();
 				}
 			}
 			super.update();

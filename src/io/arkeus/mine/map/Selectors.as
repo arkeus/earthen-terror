@@ -22,10 +22,14 @@ package io.arkeus.mine.map {
 			var eachWidth:uint = width / optionArray.length;
 			add(cursor = new AxSprite(5, -3));
 			cursor.create(eachWidth - 10, 14, 0xffff0000);
+			cursor.centerOrigin();
 			
 			options = new Vector.<AxText>;
 			for (var i:uint = 0; i < optionArray.length; i++) {
 				var text:AxText = new AxText(i * eachWidth, 0, null, optionArray[i], eachWidth, "center");
+				if (text.text == "Locked") {
+					text.color.hex = 0xff777777;
+				}
 				add(text);
 				options.push(text);
 			}
@@ -70,7 +74,11 @@ package io.arkeus.mine.map {
 		}
 		
 		private function move(delta:int):void {
-			selected = AxU.clamp(selected + delta, 0, options.length -1 );
+			var selectedCandidate:uint = AxU.clamp(selected + delta, 0, options.length -1 );
+			if (options[selectedCandidate].text == "Locked") {
+				return;
+			}
+			selected = selectedCandidate;
 			cursor.x = options[selected].x + 5;
 			value = options[selected].text;
 			if (selectCallback != null) {
@@ -80,10 +88,12 @@ package io.arkeus.mine.map {
 		
 		public function focus():void {
 			focused = true;
+			cursor.effects.grow(0.25, 1.15, 1.15);
 		}
 		
 		public function blur():void {
 			focused = false;
+			cursor.effects.grow(0.25, 1, 1);
 		}
 	}
 }

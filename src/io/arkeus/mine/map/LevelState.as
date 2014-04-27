@@ -1,5 +1,8 @@
 package io.arkeus.mine.map {
+	import io.arkeus.mine.assets.Resource;
 	import io.arkeus.mine.game.GameState;
+	import io.arkeus.mine.game.board.Block;
+	import io.arkeus.mine.game.board.BlockType;
 	import io.arkeus.mine.util.Difficulty;
 	import io.arkeus.mine.util.Registry;
 	import io.axel.Ax;
@@ -29,7 +32,7 @@ package io.arkeus.mine.map {
 			noScroll();
 			
 			add(frame = new AxSprite(0, 0));
-			frame.create(150, 122, 0xcc000000);
+			frame.create(150, 152, 0xcc000000);
 			frame.x = (Ax.viewWidth - frame.width) / 2;
 			frame.y = (Ax.viewHeight - frame.height) / 2;
 			frame.centerOrigin();
@@ -39,26 +42,28 @@ package io.arkeus.mine.map {
 		}
 		
 		override public function update():void {
-			if (Ax.keys.pressed(AxKey.ESCAPE) || Ax.keys.pressed(AxKey.X)) {
-				hide();
-				return;
-			}
-			
-			if (Ax.keys.pressed(AxKey.DOWN)) {
-				if (difficulty.focused) {
-					difficulty.blur();
-					mode.focus();
-				} else if (mode.focused) {
-					mode.blur();
-					actions.focus();
+			if (!done) {
+				if (Ax.keys.pressed(AxKey.ESCAPE) || Ax.keys.pressed(AxKey.X)) {
+					hide();
+					return;
 				}
-			} else if (Ax.keys.pressed(AxKey.UP)) {
-				if (actions.focused) {
-					actions.blur();
-					mode.focus();
-				} else if (mode.focused) {
-					mode.blur();
-					difficulty.focus();
+				
+				if (Ax.keys.pressed(AxKey.DOWN)) {
+					if (difficulty.focused) {
+						difficulty.blur();
+						mode.focus();
+					} else if (mode.focused) {
+						mode.blur();
+						actions.focus();
+					}
+				} else if (Ax.keys.pressed(AxKey.UP)) {
+					if (actions.focused) {
+						actions.blur();
+						mode.focus();
+					} else if (mode.focused) {
+						mode.blur();
+						difficulty.focus();
+					}
 				}
 			}
 			
@@ -69,6 +74,40 @@ package io.arkeus.mine.map {
 			var text:AxText;
 			add(text = new AxText(frame.x, cy, null, "@[ffff00]" + level.name, frame.width, "center"));
 			cy += text.height + 6;
+			line();
+			var enemies:Array = [BlockType.SLIME, BlockType.LION, BlockType.MOUSE, BlockType.SQUID, BlockType.RABBIT];
+			for (var i:uint = 0; i < enemies.length; i++) {
+				var type:uint = enemies[i];
+				var enemy:AxSprite = new AxSprite(3 + frame.x + i * 30, cy, Resource.BLOCKS, 20, 20);
+				switch (type) {
+					case BlockType.SLIME:  {
+						enemy.animations.add("enemy", [12, 13, 12, 14], 8);
+						break;
+					}
+					case BlockType.SQUID:  {
+						enemy.animations.add("enemy", [15, 16, 15, 17], 8);
+						break;
+					}
+					case BlockType.RABBIT:  {
+						enemy.animations.add("enemy", [18, 19, 18, 20], 8);
+						break;
+					}
+					case BlockType.LION:  {
+						enemy.animations.add("enemy", [21, 22, 21, 23], 8);
+						break;
+					}
+					case BlockType.MOUSE:  {
+						enemy.animations.add("enemy", [24, 25, 24, 26], 8);
+						break;
+					}
+				}
+				enemy.animations.play("enemy");
+				if (level.enemies.indexOf(type) == -1) {
+					enemy.color.hex = 0x99000000;
+				}
+				add(enemy);
+			}
+			cy += 24;
 			line();
 			add(text = new AxText(frame.x, cy, null, "@[00ff00]" + "Choose Difficulty:", frame.width, "center"));
 			cy += text.height + 6;
@@ -85,7 +124,8 @@ package io.arkeus.mine.map {
 			line();
 			add(text = new AxText(frame.x, cy, null, "@[00ff00]" + "Choose Mode:", frame.width, "center"));
 			cy += text.height + 6;
-			add(mode = new Selectors(frame.x, cy, ["Goal", "Endless"], frame.width));
+			var endless:String = Registry.progress[level.index - 1] == 1 ? "Endless" : "Locked";
+			add(mode = new Selectors(frame.x, cy, ["Goal", endless], frame.width));
 			mode.onChoose(function(value:String):void {
 				Ax.keys.releaseAll();
 				mode.blur();

@@ -17,6 +17,7 @@ package {
 		override public function create():void {
 			Ax.background.hex = 0xff000000;
 			Ax.pauseState = null;
+			Ax.debuggerEnabled = true;
 		}
 	}
 }
