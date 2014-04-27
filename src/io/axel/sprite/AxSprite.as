@@ -288,7 +288,7 @@ package io.axel.sprite {
 		 * @inheritDoc
 		 */
 		override public function draw():void {
-			if (indexBuffer == null || (zooms && ((screen.x - offset.x) > Ax.viewWidth || (screen.y - offset.y) > Ax.viewHeight || screen.x + animations.frameWidth < 0 || screen.y + animations.frameHeight < 0)) || scale.x == 0 || scale.y == 0) {
+			if (indexBuffer == null || scale.x == 0 || scale.y == 0) {
 				return;
 			}
 			

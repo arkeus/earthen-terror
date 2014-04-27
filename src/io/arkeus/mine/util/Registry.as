@@ -7,5 +7,8 @@ package io.arkeus.mine.util {
 		public static var game:GameState;
 		public static var board:Board;
 		public static var ui:UI;
+		
+		public static var difficulty:int = -1;
+		public static var progress:Array = [0, 0, 0, 0, 0];
 	}
 }

@@ -10,6 +10,8 @@ package io.arkeus.mine.game.board {
 		public static const AIR:uint = 5;
 		
 		public static const SLIME:uint = 10;
+		public static const SQUID:uint = 11;
+		public static const RABBIT:uint = 12;
 		
 		public static const PLACEHOLDER:uint = 100;
 		

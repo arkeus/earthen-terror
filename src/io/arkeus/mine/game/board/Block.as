@@ -1,11 +1,12 @@
 package io.arkeus.mine.game.board {
 	import io.arkeus.mine.assets.Resource;
-	import io.arkeus.mine.game.GameState;
+	import io.arkeus.mine.game.spells.Blade;
 	import io.arkeus.mine.util.Difficulty;
 	import io.arkeus.mine.util.Registry;
 	import io.axel.Ax;
 	import io.axel.AxU;
 	import io.axel.base.AxGroup;
+	import io.axel.particle.AxParticleSystem;
 	import io.axel.render.AxBlendMode;
 	import io.axel.sprite.AxSprite;
 	import io.axel.text.AxText;
@@ -29,7 +30,7 @@ package io.arkeus.mine.game.board {
 		private var text:AxText;
 		private static var jar:AxSprite;
 		private static var bar:AxSprite;
-		
+
 		public var hpm:Number = 100;
 		public var hp:int = 100;
 
@@ -42,7 +43,7 @@ package io.arkeus.mine.game.board {
 			centerOrigin();
 
 			text = new AxText(0, 0, null, "");
-			
+
 			if (jar == null) {
 				jar = new AxSprite(0, 0, Resource.JAR);
 				jar.blend = AxBlendMode.TRANSPARENT_TEXTURE;
@@ -50,22 +51,29 @@ package io.arkeus.mine.game.board {
 				jar.noScroll();
 				bar.noScroll();
 			}
-			
+
 			switch (Registry.game.difficulty) {
-				case Difficulty.EASY:
-					hpm = hp = 100 + 25 * Registry.game.level;
+				case Difficulty.EASY:  {
+					hpm = hp = 100 + 15 * Registry.game.level;
 					break;
-				case Difficulty.NORMAL:
+				}
+				case Difficulty.NORMAL:  {
+					hpm = hp = 150 + 30 * Registry.game.level;
+					break;
+				}
+				case Difficulty.HARD:  {
 					hpm = hp = 200 + 50 * Registry.game.level;
 					break;
-				case Difficulty.HARD:
-					hpm = hp = 300 + 75 * Registry.game.level;
-					break;
+				}
 			}
-			
+
+			if (enemy) {
+				timers.add(attackTimer, attack, 0);
+			}
+
 			animations.frameHeight = 10;
 		}
-		
+
 		public function setType(type:uint):void {
 			this.type = type;
 			if (type < 10) {
@@ -77,9 +85,18 @@ package io.arkeus.mine.game.board {
 //				}
 			} else {
 				switch (type) {
-					case BlockType.SLIME:
+					case BlockType.SLIME:  {
 						animations.add("enemy", [12, 13, 12, 14], 8);
-					break;
+						break;
+					}
+					case BlockType.SQUID:  {
+						animations.add("enemy", [15, 16, 15, 17], 8);
+						break;
+					}
+					case BlockType.RABBIT:  {
+						animations.add("enemy", [18, 19, 18, 20], 8);
+						break;
+					}
 				}
 				animations.play("enemy");
 			}
@@ -87,15 +104,16 @@ package io.arkeus.mine.game.board {
 				visible = false;
 			}
 		}
-		
+
 		public function lock():void {
 			show(type + 6);
 			locked = true;
 		}
-		
+
 		public function unlock():void {
 			show(type);
 			locked = false;
+			AxParticleSystem.emit("unlock", x + parentOffset.x, y + parentOffset.y);
 		}
 
 		private function zoomIn():void {
@@ -107,44 +125,47 @@ package io.arkeus.mine.game.board {
 		}
 
 		override public function update():void {
-			if (!swapping && placeholder) {
-				explode();
-				return;
-			}
-
-			if (marked) {
-				cleared = true;
-				alpha -= Ax.dt * 1;
-				if (alpha <= 0 && solid) {
-					solid = false;
-					var self:Block = this;
-					timers.add(0.5, function():void {
-						self.explode();
-					});
+			if (!Registry.game.ended) {
+				if (!swapping && placeholder) {
+					explode();
 					return;
 				}
-			} else {
-				if (globalY > Board.BOTTOM - 20) {
-					inactive = true;
-//					alpha = 0.3;
-					color.hex = 0xff333333;
+	
+				if (marked) {
+					cleared = true;
+					alpha -= Ax.dt * 1;
+					if (alpha <= 0 && solid) {
+						solid = false;
+						var self:Block = this;
+						timers.add(0.5, function():void {
+							self.explode();
+						});
+						return;
+					}
 				} else {
-					inactive = false;
-//					alpha = 1;
-					color.hex = 0xffffffff;
+					if (globalY > Board.BOTTOM - 20) {
+						inactive = true;
+	//					alpha = 0.3;
+						color.hex = 0xff333333;
+					} else {
+						inactive = false;
+	//					alpha = 1;
+						color.hex = 0xffffffff;
+					}
 				}
-			}
-
-			if (falling) {
-				pvelocity.y = velocity.y = SPEED;
-			}
-			
-			if (enemy && hp <= 0) {
-				explode();
-			}
-			
-			if (globalY < Board.TOP) {
-//				Ax.states.change(new GameState);
+	
+				if (falling) {
+					pvelocity.y = velocity.y = SPEED;
+				}
+	
+				if (enemy && hp <= 0) {
+					Registry.game.enemies++;
+					explode();
+				}
+	
+				if (globalY < Board.TOP) {
+					Registry.game.lose();
+				}
 			}
 
 			super.update();
@@ -154,7 +175,7 @@ package io.arkeus.mine.game.board {
 			if (above != null && above.y < y - 19.5 && above.y > y - 20.5) {
 				above.y = y - 20;
 			}
-			
+
 //			if (inactive) {
 //				var size:uint = 282 - (y + parentOffset.y);
 //				load(Resource.BLOCKS, Block.SIZE, size, size);
@@ -162,17 +183,24 @@ package io.arkeus.mine.game.board {
 
 			super.draw();
 			if (enemy) {
+				if (Registry.game.ended) {
+					jar.blend = AxBlendMode.BLEND;
+				} else {
+					jar.blend = AxBlendMode.TRANSPARENT_TEXTURE;
+				}
 				jar.x = x + parentOffset.x;
 				jar.y = y + parentOffset.y;
+				jar.alpha = alpha;
 				jar.draw();
 				if (hp > 0) {
 					bar.x = jar.x + 6;
 					bar.y = jar.y + 17;
 					bar.scale.x = hp / hpm;
+					bar.alpha = alpha;
 					bar.draw();
 				}
-			}			
-			
+			}
+
 			text.x = x + parentOffset.x;
 			text.y = y + parentOffset.y;
 			text.text = y.toFixed(1);
@@ -194,13 +222,17 @@ package io.arkeus.mine.game.board {
 		public function get matchable():Boolean {
 			return velocity.y == 0 && (!cleared || alpha < 0.1) && !swapping && !inactive;
 		}
-		
+
 		public function get swapable():Boolean {
 			return velocity.y == 0 && (!cleared || alpha < 0.1) && !swapping && !inactive && !locked;
 		}
-		
+
 		public function get fallable():Boolean {
 			return velocity.y == 0 && (!cleared || alpha < 0.1) && !swapping && !inactive;
+		}
+
+		public function get lockable():Boolean {
+			return !cleared && !swapping && !inactive && !locked;
 		}
 
 		public function clear():void {
@@ -233,9 +265,63 @@ package io.arkeus.mine.game.board {
 			destroy();
 			(parent as AxGroup).remove(this);
 		}
-		
+
 		public function get enemy():Boolean {
 			return type >= 10 && type < 90;
+		}
+
+		private function get attackTimer():Number {
+			switch (type) {
+				case BlockType.SLIME:  {
+					return Math.max(2, 6 - Registry.game.level * 0.2);
+					break;
+				}
+				case BlockType.SQUID:  {
+					return Math.max(8, 12 - Registry.game.level * 0.2);
+					break;
+				}
+				case BlockType.RABBIT:  {
+					return Math.max(8, 12 - Registry.game.level * 0.2);
+					break;
+				}
+			}
+			return 999;
+		}
+
+		private function attack():void {
+			if (inactive) {
+				return;
+			}
+
+			var block:Block, x:int, y:int;
+
+			switch (type) {
+				case BlockType.SLIME:  {
+					Registry.board.spells.add(new Blade(this.x, this.y, Registry.board.map.random()));
+					break;
+				}
+				case BlockType.SQUID:  {
+					for (x = tx - 1; x <= tx + 1; x++) {
+						for (y = ty - 1; y <= ty + 1; y++) {
+							block = Registry.board.map.get(x, y);
+							if (block != null && block.lockable) {
+								Registry.board.spells.add(new Blade(this.x, this.y, block));
+							}
+						}
+					}
+
+					break;
+				}
+				case BlockType.RABBIT:  {
+					for (x = 0; x < Board.WIDTH; x++) {
+						block = Registry.board.map.get(x, ty);
+						if (block != null && block.lockable) {
+							Registry.board.spells.add(new Blade(this.x, this.y, block));
+						}
+					}
+					break;
+				}
+			}
 		}
 	}
 }

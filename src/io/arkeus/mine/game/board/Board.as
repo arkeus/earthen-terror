@@ -1,8 +1,10 @@
 package io.arkeus.mine.game.board {
 	import io.arkeus.mine.assets.Particle;
 	import io.arkeus.mine.ui.UI;
+	import io.arkeus.mine.util.Difficulty;
 	import io.arkeus.mine.util.Registry;
 	import io.axel.Ax;
+	import io.axel.AxU;
 	import io.axel.base.AxGroup;
 	import io.axel.input.AxKey;
 	import io.axel.particle.AxParticleSystem;
@@ -40,21 +42,31 @@ package io.arkeus.mine.game.board {
 		
 		override public function update():void {
 			map = buildMap();
-			populateAbove();
-			handleFalls();
-			handleInput();
-			handleClears();
-			
-			if (Ax.keys.held(AxKey.SHIFT) || Ax.keys.held(AxKey.C)) {
-				velocity.y = -60;
+			if (!Registry.game.ended) {
+				populateAbove();
+				handleFalls();
+				handleInput();
+				handleClears();
+				
+				if (Ax.keys.held(AxKey.SHIFT) || Ax.keys.held(AxKey.C)) {
+					velocity.y = -60;
+				} else {
+					switch (Registry.game.difficulty) {
+						case Difficulty.EASY: velocity.y = -1 - Registry.game.level / 9; break;
+						case Difficulty.NORMAL: velocity.y = -1 - Registry.game.level / 6; break;
+						case Difficulty.HARD: velocity.y = -1 - Registry.game.level / 3; break;
+					}				
+				}
 			} else {
-				velocity.y = -1 - Registry.game.level / 2;
+				velocity.y = 0;
 			}
 			
 			super.update();
 			
-			handleStops();
-			handleRows();
+			if (!Registry.game.ended) {
+				handleStops();
+				handleRows();
+			}
 		}
 		
 		private function handleInput():void {
@@ -242,12 +254,13 @@ package io.arkeus.mine.game.board {
 			}
 		}
 		
+		private static const ENEMIES:Array = [BlockType.SLIME, BlockType.SQUID, BlockType.RABBIT];
 		private function addRow():void {
 			var block:Block;
 			for (var x:uint = 0; x < WIDTH; x++) {
-				if (rowsSinceEnemy > 6 && Math.random() < 0.16) {
+				if (rowsSinceEnemy > 2 && Math.random() < 0.10) {
 					rowsSinceEnemy = 0;
-					blocks.add(block = new Block(x, height, BlockType.SLIME));
+					blocks.add(block = new Block(x, height, ENEMIES[AxU.rand(0, ENEMIES.length - 1)]));
 				} else {
 					blocks.add(block = new Block(x, height));
 					block.inactive = true;
@@ -311,7 +324,7 @@ package io.arkeus.mine.game.board {
 		public function meteor(x:int, y:int):void {
 			var ctx:int = x / Block.SIZE;
 			var cty:int = y / Block.SIZE;
-			for (var tx:int = ctx; tx < ctx + 2; tx++) {
+			for (var tx:int = ctx - 1; tx < ctx + 3; tx++) {
 				for (var ty:int = cty - 1; ty < cty + 2; ty++) {
 					var block:Block = map.get(tx, ty);
 					if (block != null && block.matchable) {
@@ -363,6 +376,14 @@ package io.arkeus.mine.game.board {
 			} else if (block.matchable) {
 				clear(block);
 			}
+		}
+		
+		public function lose():void {
+			for (var i:uint = 0; i < blocks.members.length; i++) {
+				var block:Block = blocks.members[i];
+				block.effects.fadeOut(1);
+			}
+			cursor.visible = false;
 		}
 	}
 }

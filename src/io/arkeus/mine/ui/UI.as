@@ -1,5 +1,6 @@
 package io.arkeus.mine.ui {
 	import io.arkeus.mine.assets.Resource;
+	import io.arkeus.mine.game.GameState;
 	import io.arkeus.mine.util.Difficulty;
 	import io.arkeus.mine.util.Registry;
 	import io.axel.Ax;
@@ -10,7 +11,7 @@ package io.arkeus.mine.ui {
 	import io.axel.text.AxText;
 
 	public class UI extends AxGroup {
-		public static const MAX_MANA:uint = 20;
+		public static const MAX_MANA:uint = 5;
 
 		public var border:AxSprite;
 		public var fireBar:AxSprite;
@@ -34,7 +35,7 @@ package io.arkeus.mine.ui {
 		public var airText:AxText;
 
 		public var time:AxText;
-		public var score:AxText;
+		public var enemies:AxText;
 		public var difficulty:AxText;
 		public var spellMenu:SpellMenu;
 
@@ -65,21 +66,22 @@ package io.arkeus.mine.ui {
 
 			fireBar.scale.x = earthBar.scale.x = waterBar.scale.x = airBar.scale.x = 0;
 			
-			add(score = new AxText(148, 51, null, "0", 112, "center"));
+			add(enemies = new AxText(148, 51, null, "0", 112, "center"));
 			add(time = new AxText(148, 97, null, "2:45", 112, "center"));
 			add(difficulty = new AxText(148, 143, null, Difficulty.toString(Registry.game.difficulty), 112, "center"));
 			
 			add(spellMenu = new SpellMenu);
 			
-			time.alpha = score.alpha = 0.8;
+			time.alpha = enemies.alpha = 0.8;
 		}
 
 		override public function update():void {
-			fireBar.scale.x = Math.min(fire / MAX_MANA, 1);
-			earthBar.scale.x = Math.min(earth / MAX_MANA, 1);
-			waterBar.scale.x = Math.min(water / MAX_MANA, 1);
-			airBar.scale.x = Math.min(air / MAX_MANA, 1);
-			time.text = generateTimeString(Registry.game.end - Registry.game.start);
+			fireBar.scale.x = Math.min(fire / fireCost, 1);
+			earthBar.scale.x = Math.min(earth / earthCost, 1);
+			waterBar.scale.x = Math.min(water / waterCost, 1);
+			airBar.scale.x = Math.min(air / airCost, 1);
+			time.text = generateTimeString(Registry.game.time);
+			enemies.text = Registry.game.mode == GameState.GOAL ? Registry.game.enemies + " / " + Registry.game.digsite.goal : Registry.game.enemies.toString();
 			
 			fireText.visible = fire >= fireCost;
 			earthText.visible = earth >= earthCost;
@@ -95,9 +97,9 @@ package io.arkeus.mine.ui {
 		}
 		
 		private static function generateTimeString(duration:int):String {
-			var minutes:int = duration / 60000;
-			duration -= minutes * 60000;
-			var seconds:int = duration / 1000;
+			var minutes:int = duration / 60;
+			duration -= minutes * 60;
+			var seconds:int = duration;
 			return minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
 		}
 	}
