@@ -515,30 +515,34 @@ package io.axel {
 		 * @param event The enter frame event.
 		 */
 		protected function onEnterFrame(event:Event):void {
-			debugger.markFrameStart();
-			updateTimer();
-			
-			var timer:uint = getTimer();
-			update();
-			debugger.setUpdateTime(getTimer() - timer);
-			
-			timer = getTimer();
-			draw();	
-			debugger.setDrawTime(getTimer() - timer);
-			
-			states.disposeDestroyedStates();
-			
-			heartbeatTimer -= dt;
-			if (heartbeatTimer <= 0) {
-				heartbeatTimer = 1;
-				heartbeat();
-			}
-			
-			debugger.markFrameEnd();
-			
-			if ((keys.pressed(AxKey.GRAVE) || keys.pressed(AxKey.BACKSLASH)) && debuggerEnabled) {
-				debugger.active = !debugger.active;
-				debugger.heartbeat();
+			try {
+				debugger.markFrameStart();
+				updateTimer();
+				
+				var timer:uint = getTimer();
+				update();
+				debugger.setUpdateTime(getTimer() - timer);
+				
+				timer = getTimer();
+				draw();	
+				debugger.setDrawTime(getTimer() - timer);
+				
+				states.disposeDestroyedStates();
+				
+				heartbeatTimer -= dt;
+				if (heartbeatTimer <= 0) {
+					heartbeatTimer = 1;
+					heartbeat();
+				}
+				
+				debugger.markFrameEnd();
+				
+				if ((keys.pressed(AxKey.GRAVE) || keys.pressed(AxKey.BACKSLASH)) && debuggerEnabled) {
+					debugger.active = !debugger.active;
+					debugger.heartbeat();
+				}
+			} catch (error:Error) {
+				Ax.logger.error(error.getStackTrace());
 			}
 		}
 		

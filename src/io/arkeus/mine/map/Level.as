@@ -6,14 +6,14 @@ package io.arkeus.mine.map {
 	public class Level extends AxSprite {
 		public var index:uint;
 		public var name:String;
-		public var goal:uint;
+		public var baseGoal:uint;
 		public var enemies:Array;
 		
-		public function Level(x:uint, y:uint, index:uint, name:String, goal:uint, enemies:Array) {
+		public function Level(x:uint, y:uint, index:uint, name:String, baseGoal:uint, enemies:Array) {
 			super(x, y, Resource.MAP_LEVEL, 8, 8);
 			this.index = index;
 			this.name = name;
-			this.goal = goal;
+			this.baseGoal = baseGoal;
 			this.enemies = enemies;
 			var progress:uint = Registry.progress[index - 1];
 			if (index == 1) {

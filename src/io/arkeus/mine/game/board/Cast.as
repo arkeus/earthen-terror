@@ -1,6 +1,7 @@
 package io.arkeus.mine.game.board {
 	import io.arkeus.mine.assets.Resource;
 	import io.arkeus.mine.util.Registry;
+	import io.axel.particle.AxParticleSystem;
 	import io.axel.sprite.AxSprite;
 
 	public class Cast extends AxSprite {
@@ -9,6 +10,7 @@ package io.arkeus.mine.game.board {
 		private var type:uint;
 		private var homing:Boolean = false;
 		private var target:Block;
+		private var chosen:Boolean = false;
 
 		public function Cast(x:int, y:int, type:uint, target:Block) {
 			super(x, y, Resource.CASTS, Block.SIZE, Block.SIZE);
@@ -73,13 +75,9 @@ package io.arkeus.mine.game.board {
 					ty -= parentOffset.y;
 				}
 
-				direction = Math.atan2(ty - y, tx - x);
-				velocity.x = Math.cos(direction) * SPEED * 3;
-				velocity.y = Math.sin(direction) * SPEED * 3;
-
 				var dx:int = tx - x;
 				var dy:int = ty - y;
-				if (Math.abs(dx) < 4 && Math.abs(dy) < 4) {
+				if ((Math.abs(dx) < 3 && Math.abs(dy) < 3) || (chosen && (((velocity.x < 0 && tx >= x) || (velocity.x >= 0 && tx <= x)) || ((velocity.y < 0 && ty >= y) || (velocity.y >= 0 && ty <= y))))) {
 					if (target != null) {
 						target.hp -= 20;
 					} else {
@@ -104,9 +102,26 @@ package io.arkeus.mine.game.board {
 					}
 					destroy();
 				}
+				
+				direction = Math.atan2(ty - y, tx - x);
+				velocity.x = Math.cos(direction) * SPEED * 3;
+				velocity.y = Math.sin(direction) * SPEED * 3;
+				chosen = true;
 			}
 
 			super.update();
+		}
+		
+		override public function destroy():void {
+			var p:String;
+			switch (type) {
+				case BlockType.FIRE: p = "red"; break;
+				case BlockType.EARTH: p = "green"; break;
+				case BlockType.WATER: p = "blue"; break;
+				case BlockType.AIR: p = "yellow"; break;
+			}
+			AxParticleSystem.emit(p, x + parentOffset.x, y + parentOffset.y);
+			super.destroy();
 		}
 	}
 }

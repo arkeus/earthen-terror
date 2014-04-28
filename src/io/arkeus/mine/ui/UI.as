@@ -81,7 +81,7 @@ package io.arkeus.mine.ui {
 			waterBar.scale.x = Math.min(water / waterCost, 1);
 			airBar.scale.x = Math.min(air / airCost, 1);
 			time.text = generateTimeString(Registry.game.time);
-			enemies.text = Registry.game.mode == GameState.GOAL ? Registry.game.enemies + " / " + Registry.game.digsite.goal : Registry.game.enemies.toString();
+			enemies.text = Registry.game.mode == GameState.GOAL ? Registry.game.enemies + " / " + Registry.game.goal : Registry.game.enemies.toString();
 			
 			fireText.visible = fire >= fireCost;
 			earthText.visible = earth >= earthCost;

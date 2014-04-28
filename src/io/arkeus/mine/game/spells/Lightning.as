@@ -1,6 +1,7 @@
 package io.arkeus.mine.game.spells {
 	import io.arkeus.mine.assets.Resource;
 	import io.arkeus.mine.util.Registry;
+	import io.arkeus.mine.util.SoundSystem;
 	import io.axel.Ax;
 	import io.axel.particle.AxParticleSystem;
 	import io.axel.render.AxBlendMode;
@@ -21,8 +22,13 @@ package io.arkeus.mine.game.spells {
 			blend = AxBlendMode.TRANSPARENT_TEXTURE;
 			
 			Ax.camera.flash(0.05, 0x77ffffff);
+			SoundSystem.play("lightning-flash");
 			timers.add(0.2, function():void {
 				Ax.camera.flash(0.05, 0x77ffffff);
+				SoundSystem.play("lightning-flash");
+				timers.add(0.3, function():void {
+					SoundSystem.play("lightning");
+				});
 			});
 		}
 		

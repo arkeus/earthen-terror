@@ -35,5 +35,11 @@ package io.arkeus.mine.assets {
 		[Embed(source = "/particles/particles_blue.png")] public static const PARTICLES_BLUE:Class;
 		[Embed(source = "/particles/particles_gray.png")] public static const PARTICLES_GRAY:Class;
 		[Embed(source = "/particles/particles_metal.png")] public static const PARTICLES_METAL:Class;
+		[Embed(source = "/particles/particles_glass.png")] public static const PARTICLES_GLASS:Class;
+		
+		[Embed(source = "/particles/particles_red_f.png")] public static const PARTICLES_RED_F:Class;
+		[Embed(source = "/particles/particles_yellow_f.png")] public static const PARTICLES_YELLOW_F:Class;
+		[Embed(source = "/particles/particles_green_f.png")] public static const PARTICLES_GREEN_F:Class;
+		[Embed(source = "/particles/particles_blue_f.png")] public static const PARTICLES_BLUE_F:Class;
 	}
 }

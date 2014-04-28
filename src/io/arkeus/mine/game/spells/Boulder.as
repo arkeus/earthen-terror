@@ -2,6 +2,7 @@ package io.arkeus.mine.game.spells {
 	import io.arkeus.mine.assets.Resource;
 	import io.arkeus.mine.util.Registry;
 	import io.axel.Ax;
+	import io.axel.particle.AxParticleSystem;
 	import io.axel.sprite.AxSprite;
 
 	public class Boulder extends AxSprite {
@@ -23,6 +24,7 @@ package io.arkeus.mine.game.spells {
 		override public function update():void {
 			if (solid) {
 				if (Registry.board.boulder(center.x, y + height)) {
+					AxParticleSystem.emit("avalanche", center.x + parentOffset.x, center.y + parentOffset.y);
 					velocity.zero();
 					effects.fadeOut(1, 0, destroy);
 					velocity.y = -200;

@@ -3,6 +3,7 @@ package io.arkeus.mine.game.board {
 	import io.arkeus.mine.game.spells.Blade;
 	import io.arkeus.mine.util.Difficulty;
 	import io.arkeus.mine.util.Registry;
+	import io.arkeus.mine.util.SoundSystem;
 	import io.axel.Ax;
 	import io.axel.AxU;
 	import io.axel.base.AxGroup;
@@ -23,6 +24,13 @@ package io.arkeus.mine.game.board {
 		public var swapping:Boolean = false;
 		public var inactive:Boolean = false;
 		public var locked:Boolean = false;
+		public var comboable:int = 0;
+		public var comboEnabled:Boolean = false;
+		
+		public var douse:int = 0;
+		public var avalanche:int = 0;
+		public var lightning:int = 0;
+		public var meteor:int = 0;
 
 		public var ptx:uint;
 		public var pty:uint;
@@ -54,15 +62,15 @@ package io.arkeus.mine.game.board {
 
 			switch (Registry.game.difficulty) {
 				case Difficulty.EASY:  {
-					hpm = hp = 150 + 10 * Registry.game.level;
+					hpm = hp = 150 + 8 * Registry.game.level;
 					break;
 				}
 				case Difficulty.NORMAL:  {
-					hpm = hp = 200 + 20 * Registry.game.level;
+					hpm = hp = 200 + 12 * Registry.game.level;
 					break;
 				}
 				case Difficulty.HARD:  {
-					hpm = hp = 250 + 40 * Registry.game.level;
+					hpm = hp = 200 + 16 * Registry.game.level;
 					break;
 				}
 			}
@@ -140,6 +148,14 @@ package io.arkeus.mine.game.board {
 
 		override public function update():void {
 			if (!Registry.game.ended) {
+//				scale.x = comboEnabled ? 0.5 : 1;
+				
+				comboable--;
+				douse--;
+				avalanche--;
+				meteor--;
+				lightning--;
+				
 				if (!swapping && placeholder) {
 					explode();
 					return;
@@ -174,6 +190,8 @@ package io.arkeus.mine.game.board {
 	
 				if (enemy && hp <= 0) {
 					Registry.game.enemies++;
+					AxParticleSystem.emit("glass", x + parentOffset.x, y + parentOffset.y);
+					SoundSystem.play("glass");
 					explode();
 				}
 	
@@ -257,6 +275,9 @@ package io.arkeus.mine.game.board {
 			if (locked) {
 				unlock();
 			} else {
+				if (comboable > 0) {
+					trace("COMBO");
+				}
 				marked = true;
 				velocity.a = 180;
 			}
@@ -272,6 +293,13 @@ package io.arkeus.mine.game.board {
 				y = below.y - SIZE;
 			} else {
 				y = (Registry.board.height - 1) * SIZE;
+			}
+			if (comboEnabled && below != null && below.loseable) {
+				comboable = 10;
+			}
+			comboEnabled = false;
+			if (below != null && (below.cleared || below.comboEnabled)) {
+				comboEnabled = true;
 			}
 			falling = false;
 		}
@@ -324,6 +352,7 @@ package io.arkeus.mine.game.board {
 			switch (type) {
 				case BlockType.SLIME:  {
 					Registry.board.spells.add(new Blade(this.x, this.y, Registry.board.map.random()));
+					SoundSystem.play("blade-shoot");
 					break;
 				}
 				case BlockType.SQUID:  {
@@ -335,6 +364,7 @@ package io.arkeus.mine.game.board {
 							}
 						}
 					}
+					SoundSystem.play("blade-shoot");
 
 					break;
 				}
@@ -345,6 +375,7 @@ package io.arkeus.mine.game.board {
 							Registry.board.spells.add(new Blade(this.x, this.y, block));
 						}
 					}
+					SoundSystem.play("blade-shoot");
 					break;
 				}
 				case BlockType.LION:  {
@@ -354,12 +385,14 @@ package io.arkeus.mine.game.board {
 							Registry.board.spells.add(new Blade(this.x, this.y, block));
 						}
 					}
+					SoundSystem.play("blade-shoot");
 					
 					break;
 				}
 				case BlockType.MOUSE:  {
 					Registry.board.spells.add(new Blade(this.x, this.y, Registry.board.map.random()));
 					Registry.board.spells.add(new Blade(this.x, this.y, Registry.board.map.random()));
+					SoundSystem.play("blade-shoot");
 					break;
 				}
 			}

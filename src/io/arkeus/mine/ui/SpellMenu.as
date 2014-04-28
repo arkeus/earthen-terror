@@ -7,6 +7,7 @@ package io.arkeus.mine.ui {
 	import io.arkeus.mine.game.spells.Lightning;
 	import io.arkeus.mine.game.spells.Meteor;
 	import io.arkeus.mine.util.Registry;
+	import io.arkeus.mine.util.SoundSystem;
 	import io.axel.Ax;
 	import io.axel.AxU;
 	import io.axel.base.AxGroup;
@@ -56,10 +57,12 @@ package io.arkeus.mine.ui {
 						Registry.board.spells.add(new Boulder(i * Block.SIZE, -Registry.board.y - AxU.rand(300, 800)));
 						Registry.board.spells.add(new Boulder(i * Block.SIZE, -Registry.board.y - AxU.rand(300, 800)));
 					}
+					SoundSystem.play("avalanche");
 					toggle(0, 0);
 					Registry.ui.earth = 0;
 					Registry.ui.earthCost = cost;
 				} else if (Ax.keys.pressed(AxKey.RIGHT) && Registry.ui.water >= Registry.ui.waterCost) {
+					SoundSystem.play("douse");
 					Registry.board.spells.add(new Douse(-50, Registry.board.cursor.y + 2));
 					toggle(0, 0);
 					Registry.ui.water = 0;
@@ -73,7 +76,7 @@ package io.arkeus.mine.ui {
 		}
 
 		private function get cost():uint {
-			return UI.MAX_MANA + Registry.game.level / 2;
+			return UI.MAX_MANA + Math.min(Registry.game.level, 12) / 2;
 		}
 		
 		public function toggle(x:uint, y:uint):void {

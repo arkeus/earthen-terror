@@ -1,6 +1,7 @@
 package io.arkeus.mine.game.spells {
 	import io.arkeus.mine.assets.Resource;
 	import io.arkeus.mine.game.board.Block;
+	import io.arkeus.mine.util.SoundSystem;
 	import io.axel.render.AxBlendMode;
 	import io.axel.sprite.AxSprite;
 
@@ -27,6 +28,7 @@ package io.arkeus.mine.game.spells {
 			if (Math.abs(dx) < 4 && Math.abs(dy) < 4) {
 				if (target.exists) {
 					target.lock();
+					SoundSystem.play("blade-hit");
 				}
 				destroy();
 			}

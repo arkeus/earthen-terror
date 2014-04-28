@@ -29,6 +29,7 @@ package io.arkeus.mine.game.end {
 				if (Ax.keys.pressed(AxKey.SPACE)) {
 					done = true;
 					Ax.camera.fadeOut(0.5, 0xff000000, function():void {
+						Registry.flush();
 						Ax.states.pop();
 						Ax.states.change(new MapState(Registry.game.digsite.index));
 						Ax.camera.fadeIn(0.5);

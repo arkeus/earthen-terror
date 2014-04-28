@@ -1,6 +1,7 @@
 package io.arkeus.mine.game.spells {
 	import io.arkeus.mine.assets.Resource;
 	import io.arkeus.mine.util.Registry;
+	import io.arkeus.mine.util.SoundSystem;
 	import io.axel.particle.AxParticleSystem;
 	import io.axel.render.AxBlendMode;
 	import io.axel.sprite.AxSprite;
@@ -25,6 +26,8 @@ package io.arkeus.mine.game.spells {
 			velocity.y = Math.sin(direction) * SPEED;
 			velocity.a = 720;
 			centerOrigin();
+			
+			SoundSystem.play("meteor-fall");
 		}
 		
 		override public function update():void {
@@ -34,6 +37,7 @@ package io.arkeus.mine.game.spells {
 					AxParticleSystem.emit("meteor", center.x + parentOffset.x, center.y + parentOffset.y);
 				}
 				if (x < tx && y > ty) {
+					SoundSystem.play("meteor-explode");
 					Registry.board.meteor(tx, ty);
 					blend = AxBlendMode.BLEND;
 					velocity.zero();

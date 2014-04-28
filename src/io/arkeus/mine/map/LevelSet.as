@@ -17,10 +17,10 @@ package io.arkeus.mine.map {
 		private var level5:Level;
 
 		public function LevelSet(initial:uint) {
-			add(level1 = new Level(103, 210, 1, "Digsite Alpha", 4, [BlockType.SLIME]));
-			add(level2 = new Level(183, 210, 2, "Digsite Beta", 8, [BlockType.SLIME, BlockType.LION]));
-			add(level3 = new Level(133, 160, 3, "Digsite Gamma", 12, [BlockType.SLIME, BlockType.LION, BlockType.MOUSE]));
-			add(level4 = new Level(93, 120, 4, "Digsite Delta", 16, [BlockType.SLIME, BlockType.LION, BlockType.MOUSE, BlockType.SQUID]));
+			add(level1 = new Level(103, 210, 1, "Digsite Alpha", 8, [BlockType.SLIME]));
+			add(level2 = new Level(183, 210, 2, "Digsite Beta", 11, [BlockType.SLIME, BlockType.LION]));
+			add(level3 = new Level(133, 160, 3, "Digsite Gamma", 14, [BlockType.SLIME, BlockType.LION, BlockType.MOUSE]));
+			add(level4 = new Level(93, 120, 4, "Digsite Delta", 17, [BlockType.SLIME, BlockType.LION, BlockType.MOUSE, BlockType.SQUID]));
 			add(level5 = new Level(143, 70, 5, "Digsite Epsilon", 20, [BlockType.SLIME, BlockType.LION, BlockType.MOUSE, BlockType.SQUID, BlockType.RABBIT]));
 
 			add(selected = new AxText(0, 284, null, "Choose A Digsite", Ax.viewWidth, "center"));

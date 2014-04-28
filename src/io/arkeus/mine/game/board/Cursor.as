@@ -1,6 +1,7 @@
 package io.arkeus.mine.game.board {
 	import io.arkeus.mine.assets.Resource;
 	import io.arkeus.mine.util.Registry;
+	import io.arkeus.mine.util.SoundSystem;
 	import io.axel.sprite.AxSprite;
 
 	public class Cursor extends AxSprite {
@@ -17,9 +18,11 @@ package io.arkeus.mine.game.board {
 			}
 			
 			if (tx + dx >= 0 && tx + dx < Board.WIDTH - 1) {
+				SoundSystem.play("move");
 				tx += dx;
 			}
 			if (ty + dy >= 0 && ty + dy < Registry.board.height - 1) {
+				SoundSystem.play("move");
 				ty += dy;
 			}
 			

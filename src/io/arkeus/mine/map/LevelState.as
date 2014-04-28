@@ -5,6 +5,7 @@ package io.arkeus.mine.map {
 	import io.arkeus.mine.game.board.BlockType;
 	import io.arkeus.mine.util.Difficulty;
 	import io.arkeus.mine.util.Registry;
+	import io.arkeus.mine.util.SoundSystem;
 	import io.axel.Ax;
 	import io.axel.base.AxEntity;
 	import io.axel.input.AxKey;
@@ -23,6 +24,7 @@ package io.arkeus.mine.map {
 		private var actions:Selectors;
 		
 		private var cy:uint;
+		private var shown:Boolean = false;
 		
 		public function LevelState(level:Level) {
 			this.level = level;
@@ -42,7 +44,7 @@ package io.arkeus.mine.map {
 		}
 		
 		override public function update():void {
-			if (!done) {
+			if (!done && shown) {
 				if (Ax.keys.pressed(AxKey.ESCAPE) || Ax.keys.pressed(AxKey.X)) {
 					hide();
 					return;
@@ -137,9 +139,12 @@ package io.arkeus.mine.map {
 			actions.onChoose(choose);
 			
 			difficulty.focus();
+			shown = true;
 		}
 		
 		private function hide():void {
+			shown = false;
+			SoundSystem.play("cancel");
 			for (var i:uint = 0; i < members.length; i++) {
 				var member:AxEntity = members[i];
 				if (member != frame) {
@@ -166,6 +171,7 @@ package io.arkeus.mine.map {
 			if (action == "Cancel") {
 				hide();
 			} else {
+				SoundSystem.play("select");
 				done = true;
 				Ax.camera.fadeOut(1, 0xff000000, function():void {
 					Ax.states.pop();
