@@ -1,7 +1,7 @@
 Earthen Terror
 ==============
 
-Earthen Terror is an entry for [Ludum Dare 22](http://www.ludumdare.com). It was created in under 48 hours.
+Earthen Terror is an entry for [Ludum Dare 29](http://www.ludumdare.com). It was created in under 48 hours.
 
 [Play the game here!](http://axel.io/f/earthen-terror)
 
